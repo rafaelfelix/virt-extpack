@@ -1,0 +1,88 @@
+#!/bin/bash
+#
+# postinstall	Execute common tasks on RHEL systems
+#
+# chkconfig: 345 98 99
+# description: Execute common tasks on RHEL systems
+
+
+# Tests if the OS is supported for this scripts
+is_a_supported_os() {
+	IS_SUPPORTED=0
+	# through /proc/version
+	if [ -r /proc/version ]; then
+		$(grep "Red Hat")
+		if [ $? -eq 0 ]; then
+			IS_SUPPORTED=1
+		fi
+	fi
+	echo $IS_SUPPORTED
+}
+
+## Post install em ambiente Vmware
+postinstall_vmware() {
+	echo "TODO: install avamar, nagios and vmwaretools"
+	echo "TODO: register in Spacewalk"
+}
+
+## Post install em ambiente Xen
+postinstall_xen() {
+	echo "TODO: install xentools and nagios"
+	echo "TODO: register in Spacewalk"
+}
+
+## Post install em ambiente Virtualbox
+postinstall_virtualbox() {
+	# Tests if the Virtualbox scripts were previously executed in this box
+	$(lsmod | grep vbox)
+	if [ $? -eq 0]; then
+		echo "Virtualbox Guest Additions is already installed and loaded."
+		exit 2;
+	fi
+
+	# Installing the virtualbox guest additions
+	yum install -y wget gcc cpp glibc-headers glibc-devel make kernel-headers kernel-devel perl
+
+	VBOX_VERSION=$(curl http://download.virtualbox.org/virtualbox/LATEST.TXT)
+	cd /tmp
+	wget http://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso
+	mount -o loop VBoxGuestAdditions_$VBOX_VERSION.iso /mnt
+	export KERN_DIR=/usr/src/kernels/$(get_latest_installed_kernel)
+	sh /mnt/VBoxLinuxAdditions.run
+	umount /mnt
+	rm VBoxGuestAdditions_$VBOX_VERSION.iso
+	
+	yum remove -y wget gcc cpp glibc-headers glibc-devel make kernel-headers kernel-devel perl
+}
+
+# tests to know if the script can run in this box
+if [ $(is_a_supported_os) -ne 1 ]; then
+	echo "this script doesn't support your operating system."
+	exit 1
+fi
+
+TEST_VIRTWHAT=$(command -v virt-what)
+if [ $? -ne 0 ]; then
+	echo "please install virt-what (http://people.redhat.com/~rjones/virt-what/) to proceed."
+	exit 1
+fi
+
+HYPERVISOR=$(virt-what)
+RETVAL=0
+case "$HYPERVISOR" in
+	vmware)
+		postinstall_vmware
+		;;
+	xen|xen-dom0|xen-domU|xen-hvm)
+		postinstall_xen
+		;;
+	virtualbox)
+		postinstall_virtualbox
+		;;
+	*)
+		echo "hypervisor $HYPERVISOR not supported!"
+		RETVAL=1
+		;;
+esac
+exit $RETVAL
+EOF
