@@ -51,7 +51,8 @@ install_virtualbox() {
 
 	VBOX_VERSION=$(curl http://download.virtualbox.org/virtualbox/LATEST.TXT)
 	cd /tmp
-	wget http://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso >> $LOG 2>&1
+	rm -f VBoxGuestAdditions_$VBOX_VERSION.iso
+	wget -a $LOG http://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso
 	if [ $? -ne 0 ]; then
 		echo "Coudn't fetch the Virtualbox Guest Additions ISO. See $LOG for more details."
 		return 1

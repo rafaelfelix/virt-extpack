@@ -49,7 +49,7 @@ case "$HYPERVISOR" in
 			echo -n "Virtualbox Guest Additions is already installed and loaded." | tee -a $logfile
 			success
 		else
-			echo -n "Installing the Virtualbox Guest Additions "
+			echo -n "Installing the Virtualbox Guest Additions - Please be patient "
 			install_virtualbox $logfile && success || failure
 		fi
 		;;
