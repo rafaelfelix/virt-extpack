@@ -1,27 +1,23 @@
 %global debug_package %{nil}
-#%define ree_prefix /opt/ruby
-#%define apache_module_path /etc/httpd/modules
-#%define passenger_root %{ree_prefix}/lib/ruby/gems/1.8/gems/passenger-%{version}
-#%define passenger_ext_apache2 %{passenger_root}/ext/apache2
 
-Summary: Postinstall script for common steps
-Name: postinstall
-Version: 0.1
+Summary: Ensures the extention pack is present in your virtual machine
+Name: virt-extpack
+Version: 1
 Release: 1
 Packager: Rafael Felix Correa <rafael.felix@rf4solucoes.com.br>
 License: MIT
-Group: System Environment/Daemons
-URL: http://www.rf4solucoes.com.br/postinstall
+Group: System Administration Tools
+URL: http://www.rf4solucoes.com.br/virt-extpack
 Requires: bash virt-what
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
 #BuildRequires: 
 
-Source: passenger-%{version}.tar.gz
+Source: virt-extpack-%{version}.tar.gz
 
 %description
-Postinstall tests a few aspects about the machine it is running into 
-and perform common actions (eg: Install Virtualbox Guest Additions on a virtualbox machine). 
+virt-extpack is a shell script to ensure the installation of the 
+extension pack according to the Hypervisor
 
 It depends heavily on the virt-what package (http://people.redhat.com/~rjones/virt-what/).
 
