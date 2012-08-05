@@ -36,7 +36,7 @@ install_xen() {
 
 ## Tests if the Virtualbox Guest Additions is already installed in this box
 check_virtualbox() {
-	lsmod | grep vbox
+	lsmod | grep vbox > /dev/null
 }
 
 ## Installs Virtualbox Guest Additions

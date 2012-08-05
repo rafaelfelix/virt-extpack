@@ -30,6 +30,7 @@ fi
 
 touch $lockfile
 
+echo -n "Starting virt-extpack execution: "
 HYPERVISOR=$(virt-what)
 case "$HYPERVISOR" in
 	vmware)
@@ -41,8 +42,13 @@ case "$HYPERVISOR" in
 		install_xen
 		;;
 	virtualbox)
-		check_virtualbox && success || failure $"bla start" 
-		install_virtualbox
+		check_virtualbox
+		if [ $? -eq 0 ]; then
+			echo -n "Virtualbox Guest Additions is already installed and loaded."
+			success
+		else
+			install_virtualbox && success || failure
+		fi
 		;;
 	*)
 		echo "hypervisor $HYPERVISOR not supported!"
