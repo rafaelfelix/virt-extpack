@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# functions	virt-extpack function library
+#
+
+## Tests if the OS is supported by this script (only Red Hat is supported)
+is_a_supported_os() {
+	IS_SUPPORTED=0
+	# through /proc/version
+	if [ -r /proc/version ]; then
+		grep "Red Hat" /proc/version > /dev/null
+		[ $? -eq 0 ] && IS_SUPPORTED=1
+	fi
+	echo $IS_SUPPORTED
+}
+
+## Tests if the Vmware Tools is already installed in this box
+check_vmware() {
+	echo "TODO: check vmwaretools"
+}
+
+## Installs Vmware Tools
+install_vmware() {
+	echo "TODO: install vmwaretools"
+}
+
+## Tests if the Xen Tools is already installed in this box
+check_xen() {
+	echo "TODO: check xentools"
+}
+
+## Installs Xen Tools
+install_xen() {
+	echo "TODO: install xentools"
+}
+
+## Tests if the Virtualbox Guest Additions is already installed in this box
+check_virtualbox() {
+	lsmod | grep vbox
+}
+
+## Installs Virtualbox Guest Additions
+install_virtualbox() {
+	# Installing the virtualbox guest additions
+	RETVAL=0
+	yum install -y wget gcc cpp glibc-headers glibc-devel make kernel-headers kernel-devel perl
+
+	VBOX_VERSION=$(curl http://download.virtualbox.org/virtualbox/LATEST.TXT)
+	cd /tmp
+	wget http://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso
+	mount -o loop VBoxGuestAdditions_$VBOX_VERSION.iso /mnt
+	sh /mnt/VBoxLinuxAdditions.run
+	RETVAL=$?
+
+	umount /mnt
+	rm VBoxGuestAdditions_$VBOX_VERSION.iso
+	
+	yum remove -y wget gcc cpp glibc-headers glibc-devel make kernel-headers kernel-devel perl
+	return $RETVAL
+}

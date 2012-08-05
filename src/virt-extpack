@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# virt-extpack	Ensures the extention pack is present in your virtual machine
+#
+# chkconfig: 345 98 99
+# description: Ensures the extention pack is present in your virtual machine
+
+# Source init function library
+. /etc/rc.d/init.d/functions
+
+# Source virt-extpack function library
+#. /var/lib/virt-extpack/functions
+. ./functions
+
+RETVAL=0
+prog="virt-extpack"
+lockfile=/var/lock/subsys/$prog
+[ -f $lockfile ] && exit 0
+
+if [ $(is_a_supported_os) -ne 1 ]; then
+	echo "this script doesn't support your operating system."
+	exit 1
+fi
+
+command -v virt-what > /dev/null
+if [ $? -ne 0 ]; then
+	echo "please install virt-what (http://people.redhat.com/~rjones/virt-what/) to proceed."
+	exit 1
+fi
+
+touch $lockfile
+
+HYPERVISOR=$(virt-what)
+case "$HYPERVISOR" in
+	vmware)
+		check_vmware
+		install_vmware
+		;;
+	xen|xen-dom0|xen-domU|xen-hvm)
+		check_xen
+		install_xen
+		;;
+	virtualbox)
+		check_virtualbox && success || failure $"bla start" 
+		install_virtualbox
+		;;
+	*)
+		echo "hypervisor $HYPERVISOR not supported!"
+		RETVAL=1
+		;;
+esac
+
+rm -f $lockfile
+
+exit $RETVAL
