@@ -9,8 +9,7 @@
 . /etc/rc.d/init.d/functions
 
 # Source virt-extpack function library
-#. /var/lib/virt-extpack/functions
-. ./functions
+. /var/lib/virt-extpack/functions
 
 RETVAL=0
 prog="virt-extpack"
