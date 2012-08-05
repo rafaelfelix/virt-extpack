@@ -15,6 +15,8 @@
 RETVAL=0
 prog="virt-extpack"
 lockfile=/var/lock/subsys/$prog
+logfile=/var/log/$prog.log
+
 [ -f $lockfile ] && exit 0
 
 if [ $(is_a_supported_os) -ne 1 ]; then
@@ -22,15 +24,16 @@ if [ $(is_a_supported_os) -ne 1 ]; then
 	exit 1
 fi
 
-command -v virt-what > /dev/null
+command -v virt-what > /dev/null 2>&1
 if [ $? -ne 0 ]; then
 	echo "please install virt-what (http://people.redhat.com/~rjones/virt-what/) to proceed."
 	exit 1
 fi
 
 touch $lockfile
+echo > $logfile
 
-echo -n "Starting virt-extpack execution: "
+echo -n "Starting virt-extpack execution: " | tee -a $logfile
 HYPERVISOR=$(virt-what)
 case "$HYPERVISOR" in
 	vmware)
@@ -44,10 +47,11 @@ case "$HYPERVISOR" in
 	virtualbox)
 		check_virtualbox
 		if [ $? -eq 0 ]; then
-			echo -n "Virtualbox Guest Additions is already installed and loaded."
+			echo -n "Virtualbox Guest Additions is already installed and loaded." | tee -a $logfile
 			success
 		else
-			install_virtualbox && success || failure
+			echo -n "Installing the Virtualbox Guest Additions "
+			install_virtualbox $logfile && success || failure
 		fi
 		;;
 	*)

@@ -8,7 +8,7 @@ is_a_supported_os() {
 	IS_SUPPORTED=0
 	# through /proc/version
 	if [ -r /proc/version ]; then
-		grep "Red Hat" /proc/version > /dev/null
+		grep "Red Hat" /proc/version > /dev/null 2>&1
 		[ $? -eq 0 ] && IS_SUPPORTED=1
 	fi
 	echo $IS_SUPPORTED
@@ -36,25 +36,53 @@ install_xen() {
 
 ## Tests if the Virtualbox Guest Additions is already installed in this box
 check_virtualbox() {
-	lsmod | grep vbox > /dev/null
+	lsmod | grep vbox > /dev/null 2>&1
 }
 
 ## Installs Virtualbox Guest Additions
 install_virtualbox() {
 	# Installing the virtualbox guest additions
-	RETVAL=0
-	yum install -y wget gcc cpp glibc-headers glibc-devel make kernel-headers kernel-devel perl
+	LOG=$1
+	yum install -y wget gcc cpp glibc-headers glibc-devel make kernel-headers kernel-devel perl >> $LOG 2>&1
+	if [ $? -ne 0 ]; then
+		echo "Coudn't install tools to compile and install Virtualbox Guest Additions. See $LOG for more details."
+		return 1
+	fi
 
 	VBOX_VERSION=$(curl http://download.virtualbox.org/virtualbox/LATEST.TXT)
 	cd /tmp
-	wget http://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso
-	mount -o loop VBoxGuestAdditions_$VBOX_VERSION.iso /mnt
-	sh /mnt/VBoxLinuxAdditions.run
-	RETVAL=$?
+	wget http://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso >> $LOG 2>&1
+	if [ $? -ne 0 ]; then
+		echo "Coudn't fetch the Virtualbox Guest Additions ISO. See $LOG for more details."
+		return 1
+	fi
 
-	umount /mnt
-	rm VBoxGuestAdditions_$VBOX_VERSION.iso
-	
-	yum remove -y wget gcc cpp glibc-headers glibc-devel make kernel-headers kernel-devel perl
-	return $RETVAL
+	mkdir /tmp/mnt-vboxguest-iso
+	mount -o loop VBoxGuestAdditions_$VBOX_VERSION.iso /tmp/mnt-vboxguest-iso >> $LOG 2>&1
+	if [ $? -ne 0 ]; then
+		echo "Coudn't mount the Virtualbox Guest Additions ISO. See $LOG for more details."
+		return 1
+	fi
+
+	sh /tmp/mnt-vboxguest-iso/VBoxLinuxAdditions.run >> $LOG 2>&1
+	if [ $? -ne 0 ]; then
+		echo "VBoxLinuxAdditions.run failed. See $LOG for more details."
+		return 1
+	fi
+
+	umount /tmp/mnt-vboxguest-iso >> $LOG 2>&1
+	if [ $? -ne 0 ]; then
+		echo "Coudn't umount /tmp/mnt-vboxguest-iso. See $LOG for more details."
+		return 1
+	fi
+
+	rm -rf /tmp/mnt-vboxguest-iso >> $LOG 2>&1
+	rm -f VBoxGuestAdditions_$VBOX_VERSION.iso >> $LOG 2>&1
+
+	yum remove -y wget gcc cpp glibc-headers glibc-devel make kernel-headers kernel-devel perl >> $LOG 2>&1
+	if [ $? -ne 0 ]; then
+		echo "Coudn't uninstall build tools Virtualbox Guest Additions. See $LOG for more details."
+		return 1
+	fi
+	return 0
 }
