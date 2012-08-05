@@ -11,7 +11,7 @@ is_a_supported_os() {
 	IS_SUPPORTED=0
 	# through /proc/version
 	if [ -r /proc/version ]; then
-		$(grep "Red Hat")
+		OUTPUT=$(grep "Red Hat" /proc/version)
 		if [ $? -eq 0 ]; then
 			IS_SUPPORTED=1
 		fi
@@ -34,8 +34,8 @@ postinstall_xen() {
 ## Post install em ambiente Virtualbox
 postinstall_virtualbox() {
 	# Tests if the Virtualbox scripts were previously executed in this box
-	$(lsmod | grep vbox)
-	if [ $? -eq 0]; then
+	OUTPUT=$(lsmod | grep vbox)
+	if [ $? -eq 0 ]; then
 		echo "Virtualbox Guest Additions is already installed and loaded."
 		exit 2;
 	fi
@@ -47,7 +47,6 @@ postinstall_virtualbox() {
 	cd /tmp
 	wget http://download.virtualbox.org/virtualbox/$VBOX_VERSION/VBoxGuestAdditions_$VBOX_VERSION.iso
 	mount -o loop VBoxGuestAdditions_$VBOX_VERSION.iso /mnt
-	export KERN_DIR=/usr/src/kernels/$(get_latest_installed_kernel)
 	sh /mnt/VBoxLinuxAdditions.run
 	umount /mnt
 	rm VBoxGuestAdditions_$VBOX_VERSION.iso
