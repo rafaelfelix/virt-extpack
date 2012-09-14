@@ -12,7 +12,7 @@ Requires: bash virt-what
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
 
-Source: virt-extpack-%{version}.tar.gz
+Source: virt-extpack-%{version}-%{release}.tar.gz
 
 %description
 virt-extpack is a shell script to ensure the installation of the 
@@ -20,12 +20,12 @@ extension pack according to the Hypervisor
 
 It depends heavily on the virt-what package (http://people.redhat.com/~rjones/virt-what/).
 
+%prep
 %setup -c -n %{name}-%{version}
 
-#%build
-#$RPM_BUILD_DIR/%{name}-%{version}/bin/passenger-install-apache2-module -a --apxs2-path=/usr/sbin/apxs
-
 %install
+mkdir -p ${RPM_BUILD_ROOT}/etc/init.d
+mkdir -p ${RPM_BUILD_ROOT}/etc/logrotate.d
 mkdir -p ${RPM_BUILD_ROOT}/var/lib/virt-extpack
 
 cp -a $RPM_BUILD_DIR/%{name}-%{version}/virt-extpack ${RPM_BUILD_ROOT}/etc/init.d/virt-extpack
